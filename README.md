@@ -27,20 +27,22 @@ bun run build
 
 ## Configuração do servidor
 
-Configure as variáveis no ambiente seguro do provedor de hospedagem. Não as coloque em código, commit ou mensagem:
+Configure os segredos no ambiente seguro do provedor de hospedagem. Não os coloque em código, commit ou mensagem:
 
 - `SITE_PASSWORD`: senha de acesso privado ao app.
 - `SESSION_SECRET`: segredo aleatório de pelo menos 32 caracteres usado para assinar a sessão.
-- O gateway de IA precisa estar habilitado no ambiente Lovable conectado ao projeto.
+- O Worker Cloudflare precisa do binding Workers AI `AI`, configurado pelo build do Wrangler.
 
 O arquivo `.env.example` lista somente os nomes dessas variáveis. O app não funciona corretamente sem a configuração dos segredos no servidor. As sessões usam cookie `HttpOnly`, `Secure` e `SameSite=None` para funcionar em prévias HTTPS incorporadas.
 
 ## Dados e privacidade
 
-O texto e os documentos são enviados ao gateway de IA quando a pessoa solicita uma geração. O app não salva os materiais-fonte no histórico local. As reflexões ficam apenas no navegador atual; limpar os dados do navegador as apaga. Não há sincronização entre dispositivos nem conta individual nesta implementação.
+O texto, os DOCX convertidos no navegador e os PDFs convertidos no servidor são enviados ao Cloudflare Workers AI quando a pessoa solicita uma geração. O app não salva os materiais-fonte no histórico local. As reflexões ficam apenas no navegador atual; limpar os dados do navegador as apaga. Não há sincronização entre dispositivos nem conta individual nesta implementação.
 
-PDFs são enviados ao gateway como arquivos. DOCX é convertido em texto no navegador antes do envio. O limite atual é de 5 arquivos, até 10 MB por arquivo e 20 MB no total; texto colado e extraído tem limite combinado de 200.000 caracteres.
+PDFs são convertidos em Markdown via `AI.toMarkdown`; DOCX é convertido em texto no navegador. O limite atual é de 5 arquivos, até 10 MB por arquivo, 20 MB no total e até 50.000 caracteres combinados após a extração. O modelo `@cf/meta/llama-3.3-70b-instruct-fp8-fast` tem janela de contexto de 24.000 tokens.
+
+Workers AI inclui 10.000 Neurons por dia sem custo. Em Workers Paid, o uso acima da franquia custa US$ 0,011 por 1.000 Neurons; em Workers Free, novas inferências falham quando o limite diário é excedido. A conversão de PDFs e a geração são processamentos separados. A pessoa deve conferir os limites e o consumo no painel Cloudflare.
 
 ## Estrutura técnica
 
-TanStack Start e React fornecem a interface e as funções de servidor. O Lovable AI Gateway gera os guias no servidor, e `mammoth` extrai o texto de DOCX no navegador. O acesso privado usa senha, sessão de servidor e proteção CSRF.
+TanStack Start e React fornecem a interface e as funções de servidor. O binding Workers AI gera os guias e converte PDFs no servidor; `mammoth` extrai o texto de DOCX no navegador. O acesso privado usa senha, sessão de servidor e proteção CSRF.

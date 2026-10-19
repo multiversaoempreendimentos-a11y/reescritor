@@ -27,7 +27,7 @@ type Reflexao = {
 const MAX_ARQUIVO_BYTES = 10 * 1024 * 1024;
 const MAX_TOTAL_BYTES = 20 * 1024 * 1024;
 const MAX_ARQUIVOS = 5;
-const MAX_TEXTO = 200_000;
+const MAX_TEXTO = 50_000;
 const CHAVE_REFLEXOES = "reescritor.reflexoes.v1";
 
 async function lerArquivo(file: File): Promise<Anexo> {
@@ -203,7 +203,7 @@ function Index() {
 
     if (textoCompleto.length > MAX_TEXTO) {
       setErro(
-        "O texto colado e os documentos de texto ultrapassam 200.000 caracteres. Remova ou reduza o material.",
+        "O texto colado e os documentos de texto ultrapassam 50.000 caracteres. Remova ou reduza o material.",
       );
       return;
     }
@@ -394,7 +394,7 @@ function Index() {
                 Material de estudo
               </label>
               <span className="text-xs text-muted-foreground">
-                {material.length.toLocaleString("pt-BR")}/200.000
+                {material.length.toLocaleString("pt-BR")}/50.000
               </span>
             </div>
             <textarea
@@ -454,9 +454,11 @@ function Index() {
             )}
 
             <p className="mt-4 rounded-lg bg-muted/70 p-3 text-xs leading-5 text-muted-foreground">
-              O material enviado é processado pelo serviço de IA conectado ao app. Use apenas
-              arquivos que você pode compartilhar para esse fim. O resultado é uma ferramenta de
-              estudo: confira conceitos e referências na fonte; não é feito para ocultar autoria ou
+              O material enviado é processado pelo Cloudflare Workers AI quando você solicita uma
+              geração; PDFs são convertidos em texto no serviço. A Cloudflare oferece 10.000 Neurons
+              por dia sem custo; em plano Workers Paid, o excedente custa US$ 0,011 por 1.000
+              Neurons. Use apenas arquivos que você pode compartilhar para esse fim. Confira
+              conceitos e referências nas fontes; o resultado não é feito para ocultar autoria ou
               contornar verificações de plágio.
             </p>
 
