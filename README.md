@@ -25,6 +25,10 @@ bun run lint
 bun run build
 ```
 
+## Publicação
+
+O deploy é feito pelo workflow manual `Deploy Cloudflare Worker` em GitHub Actions. Cadastre `CLOUDFLARE_API_TOKEN` em Settings → Secrets and variables → Actions → New repository secret. O Account ID usado está configurado no workflow. O token deve ter apenas `Workers Scripts: Edit` na conta correta. Depois, abra Actions → Deploy Cloudflare Worker → Run workflow. Não envie tokens em chats ou commits.
+
 ## Dados e privacidade
 
 O texto, os DOCX convertidos no navegador e os PDFs convertidos no servidor são enviados ao Cloudflare Workers AI quando a pessoa solicita uma geração. O app não salva os materiais-fonte no histórico local. As reflexões ficam apenas no navegador atual; limpar os dados do navegador as apaga. Não há sincronização entre dispositivos nem conta individual nesta implementação.
