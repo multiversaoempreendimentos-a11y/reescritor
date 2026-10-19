@@ -20,9 +20,14 @@ type CloudflareAI = {
   ): Promise<{ response?: string }>;
   toMarkdown(files: Array<{ name: string; blob: Blob }>): Promise<MarkdownConversion[]>;
 };
+type CloudflareRateLimiter = {
+  limit(options: { key: string }): Promise<{ success: boolean }>;
+};
 
 type CloudflareRequest = Request & {
-  runtime?: { cloudflare?: { env?: { AI?: CloudflareAI } } };
+  runtime?: {
+    cloudflare?: { env?: { AI?: CloudflareAI; AI_RATE_LIMITER?: CloudflareRateLimiter } };
+  };
 };
 
 const schema = z
@@ -56,18 +61,35 @@ const estilos = {
 export const gerarTexto = createServerFn({ method: "POST" })
   .validator((d: unknown) => schema.parse(d))
   .handler(async ({ data }) => {
-    const { isUnlocked } = await import("./gate.server");
-    if (!(await isUnlocked()))
-      return { ok: false as const, error: "Acesso não autorizado. Entre novamente." };
     if (data.material.trim().length < 20 && data.pdfs.length === 0) {
       return { ok: false as const, error: "Cole um texto ou anexe um documento." };
     }
 
-    const ai = (getRequest() as CloudflareRequest).runtime?.cloudflare?.env?.AI;
-    if (!ai) {
+    const request = getRequest() as CloudflareRequest;
+    const bindings = request.runtime?.cloudflare?.env;
+    const ai = bindings?.AI;
+    const rateLimiter = bindings?.AI_RATE_LIMITER;
+    if (!ai || !rateLimiter) {
       return {
         ok: false as const,
         error: "A geração ainda não está configurada no servidor. Tente novamente mais tarde.",
+      };
+    }
+
+    try {
+      const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
+      const allowed = await rateLimiter.limit({ key: `generate:${ip}` });
+      if (!allowed.success) {
+        return {
+          ok: false as const,
+          error: "Limite temporário atingido: aguarde um minuto antes de gerar outro material.",
+        };
+      }
+    } catch {
+      console.error("Workers rate-limit binding failed");
+      return {
+        ok: false as const,
+        error: "O controle de uso está indisponível. Tente novamente mais tarde.",
       };
     }
 

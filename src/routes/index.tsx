@@ -1,8 +1,7 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { gerarTexto } from "@/lib/rewrite.functions";
-import { requireAccess, lockSite } from "@/lib/gate.functions";
 import {
   classifySelfAssessment,
   parseStudyGuide,
@@ -74,7 +73,6 @@ function ehReflexao(value: unknown): value is Reflexao {
 }
 
 export const Route = createFileRoute("/")({
-  loader: () => requireAccess(),
   head: () => ({
     meta: [
       { title: "Reescritor de Estudos — estudo ativo com IA" },
@@ -97,8 +95,6 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const gerar = useServerFn(gerarTexto);
-  const sair = useServerFn(lockSite);
-  const router = useRouter();
   const [material, setMaterial] = useState("");
   const [objetivo, setObjetivo] = useState("");
   const [formato, setFormato] = useState<Formato>("guia");
@@ -287,11 +283,6 @@ function Index() {
     }
   }
 
-  async function encerrar() {
-    await sair();
-    await router.navigate({ to: "/entrar" });
-  }
-
   const confiancas: Array<[Confidence, string]> = [
     ["chutei", "Chutei"],
     ["acho", "Acho"],
@@ -306,12 +297,6 @@ function Index() {
   return (
     <main className="min-h-screen px-5 py-8 md:px-8 md:py-12">
       <div className="mx-auto max-w-7xl">
-        <div className="no-print mb-8 flex justify-end">
-          <button className="chip" onClick={encerrar}>
-            Sair
-          </button>
-        </div>
-
         <header className="mb-10 max-w-3xl no-print">
           <p className="eyebrow">Estudo ativo com IA</p>
           <h1 className="font-display mt-3 text-5xl leading-[0.98] md:text-7xl">
@@ -454,12 +439,14 @@ function Index() {
             )}
 
             <p className="mt-4 rounded-lg bg-muted/70 p-3 text-xs leading-5 text-muted-foreground">
-              O material enviado é processado pelo Cloudflare Workers AI quando você solicita uma
-              geração; PDFs são convertidos em texto no serviço. A Cloudflare oferece 10.000 Neurons
-              por dia sem custo; em plano Workers Paid, o excedente custa US$ 0,011 por 1.000
-              Neurons. Use apenas arquivos que você pode compartilhar para esse fim. Confira
-              conceitos e referências nas fontes; o resultado não é feito para ocultar autoria ou
-              contornar verificações de plágio.
+              Este app está publicado sem senha: qualquer pessoa com o endereço pode utilizá-lo. Há
+              um limite básico de 5 gerações por minuto por IP, mas isso não é um teto global de
+              consumo nem impede todo abuso. O material enviado é processado pelo Cloudflare Workers
+              AI quando você solicita uma geração; PDFs são convertidos em texto no serviço. A
+              Cloudflare oferece 10.000 Neurons por dia sem custo; em plano Workers Paid, o
+              excedente custa US$ 0,011 por 1.000 Neurons. Use apenas arquivos que você pode
+              compartilhar para esse fim. Confira conceitos e referências nas fontes; o resultado
+              não é feito para ocultar autoria ou contornar verificações de plágio.
             </p>
 
             {erro && (

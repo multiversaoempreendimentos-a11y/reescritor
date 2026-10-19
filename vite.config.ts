@@ -11,6 +11,13 @@ export default defineConfig({
     cloudflare: {
       wrangler: {
         ai: { binding: "AI" },
+        ratelimits: [
+          {
+            name: "AI_RATE_LIMITER",
+            namespace_id: "742813059",
+            simple: { limit: 5, period: 60 },
+          },
+        ],
       },
     } as never,
   },
