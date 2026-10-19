@@ -26,6 +26,9 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+  --font-display: "Fraunces", Georgia, serif;
+  --font-sans: "Manrope", system-ui, sans-serif;
+  --color-paper: var(--paper);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -63,25 +66,26 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --background: oklch(0.965 0.012 85);
+  --foreground: oklch(0.22 0.02 50);
+  --paper: oklch(0.99 0.006 85);
+  --card: oklch(0.99 0.006 85);
+  --card-foreground: oklch(0.22 0.02 50);
+  --popover: oklch(0.99 0.006 85);
+  --popover-foreground: oklch(0.22 0.02 50);
+  --primary: oklch(0.42 0.12 25);
+  --primary-foreground: oklch(0.98 0.01 85);
+  --secondary: oklch(0.92 0.02 85);
+  --secondary-foreground: oklch(0.22 0.02 50);
+  --muted: oklch(0.92 0.015 85);
+  --muted-foreground: oklch(0.48 0.02 60);
+  --accent: oklch(0.9 0.03 80);
+  --accent-foreground: oklch(0.22 0.02 50);
+  --destructive: oklch(0.55 0.2 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.86 0.02 80);
+  --input: oklch(0.86 0.02 80);
+  --ring: oklch(0.42 0.12 25);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -140,5 +144,84 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+  }
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+  }
+}
+
+@page {
+  margin: 16mm;
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #study-guide,
+  #study-guide * {
+    visibility: visible !important;
+  }
+  #study-guide {
+    position: absolute !important;
+    inset: 0 auto auto 0 !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: white !important;
+    color: #111 !important;
+  }
+  #study-guide .no-print {
+    display: none !important;
+  }
+  #study-guide .study-output {
+    color: #111 !important;
+    font-size: 11pt !important;
+    line-height: 1.55 !important;
+  }
+}
+
+@layer components {
+  .study-output {
+    @apply whitespace-pre-wrap text-base leading-7 text-foreground;
+  }
+  .eyebrow {
+    @apply text-xs uppercase tracking-[0.25em] text-primary font-semibold;
+  }
+  .panel {
+    @apply rounded-2xl border border-border bg-card p-6 md:p-8 shadow-sm;
+  }
+  .panel-paper {
+    @apply bg-paper;
+    background-image: repeating-linear-gradient(
+      transparent 0 31px,
+      color-mix(in oklab, var(--border) 60%, transparent) 31px 32px
+    );
+  }
+  .label {
+    @apply block text-sm font-semibold mb-2;
+  }
+  .field {
+    @apply w-full rounded-lg border border-input bg-background px-4 py-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/20;
+  }
+  .chip {
+    @apply rounded-full border border-border bg-background px-4 py-1.5 text-sm transition hover:border-primary;
+  }
+  .chip-on {
+    @apply bg-primary text-primary-foreground border-primary;
+  }
+  .cta {
+    @apply rounded-lg bg-primary px-6 py-3.5 font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60;
+  }
+  .dropzone {
+    @apply flex flex-col items-center gap-1 rounded-lg border-2 border-dashed border-border bg-background px-4 py-5 text-center text-sm cursor-pointer transition hover:border-primary;
+  }
+  .prose-out {
+    @apply whitespace-pre-wrap font-display text-lg leading-8;
   }
 }
