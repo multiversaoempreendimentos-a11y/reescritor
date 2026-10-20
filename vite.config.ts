@@ -15,7 +15,7 @@ export default defineConfig({
           {
             name: "AI_RATE_LIMITER",
             namespace_id: "742813059",
-            simple: { limit: 5, period: 60 },
+            simple: { limit: 1, period: 60 },
           },
         ],
       },

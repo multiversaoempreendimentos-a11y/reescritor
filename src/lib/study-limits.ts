@@ -1,3 +1,8 @@
-export const MAX_SOURCE_CHARS = 120_000;
-export const MAX_CHUNK_CHARS = 18_000;
-export const CHUNK_SUMMARY_MAX_TOKENS = 1_200;
+export const MAX_SOURCE_CHARS = 1_200_000;
+export const MAX_CHUNK_CHARS = 30_000;
+export const CHUNK_SUMMARY_MAX_TOKENS = 2_000;
+export const CHUNK_SUMMARY_BRIEF_MAX_TOKENS = 1_000;
+export const MAX_CHUNK_CONCURRENCY = 6;
+export const MAX_GUIDE_OUTPUT_TOKENS = 10_000;
+export const MAX_BRIEF_OUTPUT_TOKENS = 5_000;
+export const MAX_LONG_SOURCE_CONFIRM_CHARS = 300_000;

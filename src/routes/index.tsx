@@ -2,7 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { gerarTexto } from "@/lib/rewrite.functions";
-import { MAX_SOURCE_CHARS } from "@/lib/study-limits";
+import {
+  MAX_CHUNK_CHARS,
+  MAX_LONG_SOURCE_CONFIRM_CHARS,
+  MAX_SOURCE_CHARS,
+} from "@/lib/study-limits";
 import {
   classifySelfAssessment,
   parseStudyGuide,
@@ -127,11 +131,17 @@ function Index() {
 
   const partes = resultado ? parseStudyGuide(resultado) : null;
   const totalBytes = anexos.reduce((total, anexo) => total + anexo.bytes, 0);
+  const totalTextChars =
+    material.length +
+    anexos
+      .filter((anexo) => anexo.tipo === "texto")
+      .reduce((total, anexo) => total + anexo.conteudo.length, 0);
   const guiaVisivel = partes
     ? [partes.antes, gabaritoVisivel ? partes.gabarito : "", partes.depois]
         .filter(Boolean)
         .join("\n\n")
     : "";
+  const etapaAtual = resultado ? (gabaritoVisivel ? 3 : 2) : 1;
   const chip = (ativo: boolean) => `chip ${ativo ? "chip-on" : ""}`;
 
   async function anexar(files: FileList | null) {
@@ -187,8 +197,6 @@ function Index() {
   }
 
   async function enviar() {
-    setErro("");
-    limparSessao();
     const textos = anexos
       .filter((anexo) => anexo.tipo === "texto")
       .map((anexo) => `[Documento: ${anexo.nome}]\n${anexo.conteudo}`);
@@ -199,7 +207,7 @@ function Index() {
 
     if (textoCompleto.length > MAX_SOURCE_CHARS) {
       setErro(
-        "O texto colado e os documentos de texto ultrapassam 120.000 caracteres. Remova ou reduza o material.",
+        "O texto colado e os documentos de texto ultrapassam 1.200.000 caracteres. Remova ou reduza o material.",
       );
       return;
     }
@@ -208,6 +216,20 @@ function Index() {
       return;
     }
 
+    if (textoCompleto.length > MAX_LONG_SOURCE_CONFIRM_CHARS || pdfs.length > 0) {
+      const estimatedParts = Math.ceil(textoCompleto.length / MAX_CHUNK_CHARS);
+      const pdfNotice =
+        pdfs.length > 0
+          ? " Os PDFs são convertidos no servidor e o tamanho do texto extraído pode variar."
+          : "";
+      const confirmed = window.confirm(
+        `Este material será processado em partes${textoCompleto.length > MAX_LONG_SOURCE_CONFIRM_CHARS ? ` (cerca de ${estimatedParts} partes pelo texto atual)` : ""}. Isso pode levar alguns minutos, usar várias inferências de IA e consumir a franquia diária ou gerar custos no plano pago.${pdfNotice} Quer continuar?`,
+      );
+      if (!confirmed) return;
+    }
+
+    setErro("");
+    limparSessao();
     setCarregando(true);
     try {
       const resposta = await gerar({
@@ -297,19 +319,54 @@ function Index() {
   return (
     <main className="min-h-screen px-5 py-8 md:px-8 md:py-12">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-10 max-w-3xl no-print">
-          <p className="eyebrow">Estudo ativo com IA</p>
-          <h1 className="font-display mt-3 text-5xl leading-[0.98] md:text-7xl">
-            Reescritor <em className="text-primary">de Estudos</em>
-          </h1>
-          <p className="mt-5 text-lg text-muted-foreground">
-            Envie um material, escolha um foco e transforme as fontes em blocos de aprendizagem,
-            perguntas para recuperar sem consulta e um plano de revisão.
-          </p>
-        </header>
+        <div className="mb-10 flex flex-col gap-6 no-print lg:flex-row lg:items-end lg:justify-between">
+          <header className="max-w-3xl">
+            <p className="eyebrow">Estudo ativo com IA</p>
+            <h1 className="font-display mt-3 text-5xl leading-[0.98] md:text-7xl">
+              Reescritor <em className="text-primary">de Estudos</em>
+            </h1>
+            <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
+              Envie um material, escolha um foco e transforme as fontes em blocos de aprendizagem,
+              perguntas para recuperar sem consulta e um plano de revisão.
+            </p>
+          </header>
+
+          <ol className="workflow-map" aria-label="Etapas de estudo">
+            {(
+              [
+                { step: 1, label: "Fonte" },
+                { step: 2, label: "Prática" },
+                { step: 3, label: "Revisão" },
+              ] as const
+            ).map(({ step, label }) => (
+              <li
+                key={step}
+                className={`workflow-step ${
+                  etapaAtual === step
+                    ? "workflow-step-current"
+                    : etapaAtual > step
+                      ? "workflow-step-complete"
+                      : ""
+                }`}
+                aria-current={etapaAtual === step ? "step" : undefined}
+              >
+                <span className="workflow-num">{String(step).padStart(2, "0")}</span>
+                <span>{label}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
 
         <div className="grid items-start gap-7 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
           <section className="panel no-print">
+            <div className="section-heading">
+              <span className="step-index">01</span>
+              <div>
+                <p className="eyebrow">Comece pela fonte</p>
+                <h2 className="font-display mt-1 text-2xl text-foreground">Prepare seu estudo</h2>
+              </div>
+            </div>
+
             <div className="mb-6">
               <label className="label">Formato de estudo</label>
               <div className="flex flex-wrap gap-2">
@@ -378,8 +435,11 @@ function Index() {
               <label className="label mb-0" htmlFor="material">
                 Material de estudo
               </label>
-              <span className="text-xs text-muted-foreground">
-                {material.length.toLocaleString("pt-BR")}/{MAX_SOURCE_CHARS.toLocaleString("pt-BR")}
+              <span
+                className="text-xs text-muted-foreground"
+                title="Inclui o texto colado e arquivos de texto; o conteúdo dos PDFs é contado após a extração."
+              >
+                {totalTextChars.toLocaleString("pt-BR")}/{MAX_SOURCE_CHARS.toLocaleString("pt-BR")}
               </span>
             </div>
             <textarea
@@ -438,18 +498,22 @@ function Index() {
               </div>
             )}
 
-            <p className="mt-4 rounded-lg bg-muted/70 p-3 text-xs leading-5 text-muted-foreground">
-              Este app está publicado sem senha: qualquer pessoa com o endereço pode utilizá-lo. Há
-              um limite básico de 5 gerações por minuto por IP, mas isso não é um teto global de
-              consumo nem impede todo abuso. O material enviado é processado pelo Cloudflare Workers
-              AI quando você solicita uma geração; PDFs são convertidos em texto no serviço.
-              Materiais acima de 18.000 caracteres são resumidos em partes antes da síntese final,
-              usando várias chamadas de IA e podendo consumir mais. O limite de entrada é de 120.000
-              caracteres. A Cloudflare oferece 10.000 Neurons por dia sem custo; em plano Workers
-              Paid, o excedente custa US$ 0,011 por 1.000 Neurons. Use apenas arquivos que você pode
-              compartilhar para esse fim. Confira conceitos e referências nas fontes; o resultado
-              não é feito para ocultar autoria ou contornar verificações de plágio.
-            </p>
+            <div className="mt-4 rounded-lg bg-muted/70 p-3 text-xs leading-5 text-muted-foreground">
+              <p className="mb-1 font-semibold text-foreground">Uso, privacidade e consumo</p>
+              <p>
+                Este app é público e não exige senha: qualquer pessoa com o endereço pode
+                utilizá-lo. Há um limite básico de 1 geração por minuto por IP, mas isso não é um
+                teto global de consumo nem impede todo abuso. O material enviado é processado pelo
+                Cloudflare Workers AI quando você solicita uma geração; PDFs são convertidos em
+                texto no serviço. O limite combinado após extração é de 1.200.000 caracteres.
+                Materiais acima de 30.000 caracteres são resumidos em partes, com até 40 resumos e
+                uma síntese final; isso pode levar alguns minutos e usar muitas inferências. A
+                Cloudflare oferece 10.000 Neurons por dia sem custo; em plano Workers Paid, o
+                excedente custa US$ 0,011 por 1.000 Neurons. Use apenas arquivos que você pode
+                compartilhar para esse fim. Confira conceitos e referências nas fontes; o resultado
+                não é feito para ocultar autoria ou contornar verificações de plágio.
+              </p>
+            </div>
 
             {erro && (
               <p role="alert" className="mt-3 text-sm text-destructive">
@@ -462,7 +526,9 @@ function Index() {
               disabled={carregando || carregandoArquivo}
             >
               {carregando
-                ? "Preparando seu guia…"
+                ? material.length > MAX_CHUNK_CHARS || anexos.length > 0
+                  ? "Processando em partes — pode levar alguns minutos…"
+                  : "Preparando seu guia…"
                 : formato === "guia"
                   ? "Criar guia de estudo"
                   : "Criar resumo para revisar"}
@@ -471,7 +537,12 @@ function Index() {
 
           <section id="study-guide" className="panel panel-paper min-h-[32rem]" aria-live="polite">
             <div className="no-print mb-5 flex flex-wrap items-center justify-between gap-3">
-              <span className="label mb-0">Seu material de estudo</span>
+              <div>
+                <p className="eyebrow">Etapa 02 · recuperação ativa</p>
+                <h2 className="font-display mt-1 text-2xl text-foreground">
+                  Seu material de estudo
+                </h2>
+              </div>
               {partes && (
                 <div className="flex flex-wrap gap-2">
                   <button className="chip" onClick={copiarGuia}>
@@ -649,11 +720,16 @@ function Index() {
                 </div>
               </>
             ) : (
-              <div className="max-w-xl py-8">
-                <p className="font-display text-2xl text-muted-foreground">
-                  Seu guia aparecerá aqui.
+              <div className="empty-guide">
+                <span className="empty-guide-index" aria-hidden="true">
+                  02
+                </span>
+                <p className="font-display text-3xl text-foreground">Seu guia aparecerá aqui.</p>
+                <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                  As explicações, perguntas e o plano de revisão entram neste espaço depois da
+                  geração.
                 </p>
-                <ol className="mt-5 space-y-3 text-sm leading-6 text-muted-foreground">
+                <ol className="mt-6 max-w-xl space-y-3 text-sm leading-6 text-muted-foreground">
                   <li>
                     <strong>1. Escolha um foco</strong> — ou pule, pois o campo é opcional.
                   </li>

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { MAX_CHUNK_CHARS, MAX_SOURCE_CHARS } from "@/lib/study-limits";
 import { splitTextIntoChunks } from "@/lib/text-chunking";
 
 describe("splitTextIntoChunks", () => {
@@ -30,6 +31,15 @@ describe("splitTextIntoChunks", () => {
         .replace(/\s+/g, " ")
         .trim(),
     ).toBe(text.replace(/\s+/g, " ").trim());
+  });
+
+  it("processa o limite de 1,2 milhão em no máximo 40 trechos", () => {
+    const text = "x".repeat(MAX_SOURCE_CHARS);
+    const chunks = splitTextIntoChunks(text, MAX_CHUNK_CHARS);
+
+    expect(chunks).toHaveLength(40);
+    expect(chunks.every((chunk) => chunk.text.length <= MAX_CHUNK_CHARS)).toBe(true);
+    expect(chunks.reduce((total, chunk) => total + chunk.text.length, 0)).toBe(MAX_SOURCE_CHARS);
   });
 
   it("rejeita um limite inválido", () => {

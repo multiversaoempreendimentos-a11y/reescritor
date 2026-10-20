@@ -2,21 +2,21 @@
 
 ## Implementado no código
 
-- [x] Aplicação sem senha; mantém proteção CSRF e rate limit básico de 5 gerações por minuto por IP.
-- [x] Anexar PDF, DOCX, TXT e Markdown, com limites por arquivo e por envio.
-- [x] Gerar guia completo ou resumo rápido com Cloudflare Workers AI.
-- [x] Converter PDFs no servidor com Workers AI `toMarkdown`, respeitando limite combinado de fonte.
-- [x] Foco de estudo opcional, limitado a 140 caracteres.
-- [x] Conteúdo organizado em blocos, perguntas de recuperação e gabarito protegido por marcadores.
-- [x] Solicitar uma autoavaliação de confiança antes de revelar o gabarito.
-- [x] Reflexão pós-estudo com objetivo, confiança e próximo passo; histórico local limitado a 200 entradas.
-- [x] Copiar ou baixar Markdown e imprimir/salvar o material visível como PDF.
-- [x] Instruções de integridade acadêmica e preservação de referências às fontes.
+- [x] Aplicação pública sem senha, com proteção CSRF e rate limit básico de 1 geração por minuto por IP.
+- [x] Anexar PDF, DOCX, TXT e Markdown, com limite de 5 arquivos, 10 MB por arquivo e 20 MB por envio.
+- [x] Aceitar até 1.200.000 caracteres combinados após extração.
+- [x] Processar fontes com trechos de até 30.000 caracteres, até 6 inferências simultâneas e no máximo 40 sínteses intermediárias antes da síntese final.
+- [x] Usar `@cf/meta/llama-4-scout-17b-16e-instruct`, com saída de guia completo ampliada e resumo rápido seletivo.
+- [x] Exigir confirmação para textos acima de 300.000 caracteres ou envio de PDF, avisando que pode haver várias inferências, espera e consumo adicional.
+- [x] Gerar guia completo ou resumo rápido em estilo didático, jurídico ou acadêmico.
+- [x] Manter perguntas sem respostas até a pessoa indicar sua confiança; depois apresentar gabarito, autoavaliação, reflexão e próxima ação.
+- [x] Guardar reflexões apenas localmente, com histórico limitado a 200 entradas; copiar, baixar Markdown e imprimir/salvar como PDF.
+- [x] Preservar fontes e instruções de integridade acadêmica; não gerar texto para ocultar autoria ou contornar verificações de plágio.
+- [x] Adicionar mapa visual das etapas Fonte → Prática → Revisão, mantendo paleta, fontes e layout editorial do produto.
 
-## A validar na hospedagem Cloudflare Workers
+## Pendências de operação
 
-- [ ] Confirmar o binding `AI` do Workers AI no Worker publicado.
-- [ ] Confirmar binding de rate limiting e funcionamento do limite básico.
-- [ ] Testar geração e conversão de PDF ponta a ponta com material sintético autorizado.
-- [ ] Conferir upload de PDF e DOCX em desktop e celular, além da exportação por impressão.
-- [ ] Verificar a prévia HTTPS incorporada e o cookie da sessão após login.
+- [ ] Confirmar em produção o binding Workers AI e o rate limiter após o deploy.
+- [ ] Testar uma geração sintética curta somente quando houver autorização para consumir Workers AI.
+- [ ] Validar conversão de PDFs em produção com arquivo de teste autorizado e verificar o consumo associado.
+- [ ] Conferir manualmente em celular a interface publicada e a exportação por impressão.
