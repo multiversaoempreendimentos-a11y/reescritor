@@ -33,9 +33,9 @@ O deploy é feito pelo workflow manual `Deploy Cloudflare Worker` em GitHub Acti
 
 O texto, os DOCX convertidos no navegador e os PDFs convertidos no servidor são enviados ao Cloudflare Workers AI quando a pessoa solicita uma geração. O app não salva os materiais-fonte no histórico local. As reflexões ficam apenas no navegador atual; limpar os dados do navegador as apaga. Não há sincronização entre dispositivos nem conta individual nesta implementação.
 
-PDFs são convertidos em Markdown via `AI.toMarkdown`; DOCX é convertido em texto no navegador. O limite atual é de 5 arquivos, até 10 MB por arquivo, 20 MB no total e até 50.000 caracteres combinados após a extração. O modelo `@cf/meta/llama-3.3-70b-instruct-fp8-fast` tem janela de contexto de 24.000 tokens.
+PDFs são convertidos em Markdown via `AI.toMarkdown`; DOCX é convertido em texto no navegador. O limite atual é de 5 arquivos, até 10 MB por arquivo, 20 MB no total e até 120.000 caracteres combinados após a extração. Textos acima de 18.000 caracteres são resumidos em partes antes da síntese final. O modelo `@cf/meta/llama-3.3-70b-instruct-fp8-fast` tem janela de contexto de 24.000 tokens; o processamento em partes permite materiais maiores, mas usa várias chamadas de IA e pode consumir mais.
 
-O Worker tem um limite básico de 5 chamadas por minuto por endereço IP para reduzir abuso. É um rate limit local à localização Cloudflare, não um teto global de consumo; o IP pode agrupar usuários legítimos e o controle é eventualmente consistente. Não impede todo abuso nem garante um limite financeiro.
+O Worker tem um limite básico de 5 gerações por minuto por endereço IP para reduzir abuso. É um rate limit local à localização Cloudflare, não um teto global de consumo; o IP pode agrupar usuários legítimos e o controle é eventualmente consistente. Não impede todo abuso nem garante um limite financeiro.
 
 Workers AI inclui 10.000 Neurons por dia sem custo. Em Workers Paid, o uso acima da franquia custa US$ 0,011 por 1.000 Neurons; em Workers Free, novas inferências falham quando o limite diário é excedido. A conversão de PDFs e a geração são processamentos separados. A pessoa deve conferir os limites e o consumo no painel Cloudflare.
 

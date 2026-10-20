@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { gerarTexto } from "@/lib/rewrite.functions";
+import { MAX_SOURCE_CHARS } from "@/lib/study-limits";
 import {
   classifySelfAssessment,
   parseStudyGuide,
@@ -26,7 +27,6 @@ type Reflexao = {
 const MAX_ARQUIVO_BYTES = 10 * 1024 * 1024;
 const MAX_TOTAL_BYTES = 20 * 1024 * 1024;
 const MAX_ARQUIVOS = 5;
-const MAX_TEXTO = 50_000;
 const CHAVE_REFLEXOES = "reescritor.reflexoes.v1";
 
 async function lerArquivo(file: File): Promise<Anexo> {
@@ -197,9 +197,9 @@ function Index() {
       .map((anexo) => ({ nome: anexo.nome, base64: anexo.conteudo }));
     const textoCompleto = [material.trim(), ...textos].filter(Boolean).join("\n\n");
 
-    if (textoCompleto.length > MAX_TEXTO) {
+    if (textoCompleto.length > MAX_SOURCE_CHARS) {
       setErro(
-        "O texto colado e os documentos de texto ultrapassam 50.000 caracteres. Remova ou reduza o material.",
+        "O texto colado e os documentos de texto ultrapassam 120.000 caracteres. Remova ou reduza o material.",
       );
       return;
     }
@@ -379,14 +379,14 @@ function Index() {
                 Material de estudo
               </label>
               <span className="text-xs text-muted-foreground">
-                {material.length.toLocaleString("pt-BR")}/50.000
+                {material.length.toLocaleString("pt-BR")}/{MAX_SOURCE_CHARS.toLocaleString("pt-BR")}
               </span>
             </div>
             <textarea
               id="material"
               className="field min-h-56 resize-y"
               value={material}
-              maxLength={MAX_TEXTO}
+              maxLength={MAX_SOURCE_CHARS}
               onChange={(event) => setMaterial(event.target.value)}
               placeholder="Cole trechos ou anotações que você tem autorização para estudar. A síntese manterá as referências disponíveis."
             />
@@ -442,9 +442,11 @@ function Index() {
               Este app está publicado sem senha: qualquer pessoa com o endereço pode utilizá-lo. Há
               um limite básico de 5 gerações por minuto por IP, mas isso não é um teto global de
               consumo nem impede todo abuso. O material enviado é processado pelo Cloudflare Workers
-              AI quando você solicita uma geração; PDFs são convertidos em texto no serviço. A
-              Cloudflare oferece 10.000 Neurons por dia sem custo; em plano Workers Paid, o
-              excedente custa US$ 0,011 por 1.000 Neurons. Use apenas arquivos que você pode
+              AI quando você solicita uma geração; PDFs são convertidos em texto no serviço.
+              Materiais acima de 18.000 caracteres são resumidos em partes antes da síntese final,
+              usando várias chamadas de IA e podendo consumir mais. O limite de entrada é de 120.000
+              caracteres. A Cloudflare oferece 10.000 Neurons por dia sem custo; em plano Workers
+              Paid, o excedente custa US$ 0,011 por 1.000 Neurons. Use apenas arquivos que você pode
               compartilhar para esse fim. Confira conceitos e referências nas fontes; o resultado
               não é feito para ocultar autoria ou contornar verificações de plágio.
             </p>
