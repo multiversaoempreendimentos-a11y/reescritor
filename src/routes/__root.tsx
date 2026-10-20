@@ -78,16 +78,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Reescritor de Estudos" },
+      { title: "Reescritor Inteligente" },
       {
         name: "description",
-        content: "Guias de estudo com recuperação ativa, autoavaliação e revisão.",
+        content: "Reescrita editorial em português do Brasil, clara, refinada e fiel à fonte.",
       },
-      { name: "author", content: "Reescritor de Estudos" },
-      { property: "og:title", content: "Reescritor de Estudos" },
+      { name: "author", content: "Reescritor Inteligente" },
+      { property: "og:title", content: "Reescritor Inteligente" },
       {
         property: "og:description",
-        content: "Transforme PDFs e anotações em material de estudo ativo.",
+        content: "Reescreva textos com mais clareza sem perder sentido ou referências.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

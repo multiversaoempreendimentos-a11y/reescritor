@@ -1,45 +1,64 @@
 import { describe, expect, it } from "vitest";
-import { MAX_CHUNK_CHARS, MAX_SOURCE_CHARS } from "@/lib/study-limits";
-import { splitTextIntoChunks } from "@/lib/text-chunking";
+import { MAX_CHUNK_CHARS, MAX_CHUNK_COUNT, MAX_SOURCE_CHARS } from "@/lib/rewrite-limits";
+import { separateChunkBoundaryFragments, splitTextIntoChunks } from "@/lib/text-chunking";
 
 describe("splitTextIntoChunks", () => {
-  it("mantém texto curto em um único trecho", () => {
-    expect(splitTextIntoChunks("Um texto curto.", 20)).toEqual([
-      { text: "Um texto curto.", start: 0 },
-    ]);
+  it("mantém texto curto em uma única fatia, sem trimming", () => {
+    const text = " \nUm texto curto.\n ";
+    const chunks = splitTextIntoChunks(text, 100);
+
+    expect(chunks).toEqual([{ text, start: 0, end: text.length }]);
   });
 
-  it("divide em limites de parágrafo sempre que possível", () => {
-    const text = `${"A".repeat(12)}\n\n${"B".repeat(12)}`;
-    const chunks = splitTextIntoChunks(text, 16);
+  it("cria fatias contíguas e reconstrói whitespace e formatação exatamente", () => {
+    const text = "  título\n\nlista:\n- um\n- dois\t\n\nparágrafo final  ";
+    const chunks = splitTextIntoChunks(text, 11);
 
-    expect(chunks.map((chunk) => chunk.text)).toEqual(["A".repeat(12), "B".repeat(12)]);
-    expect(chunks[1]?.start).toBe(14);
-    expect(chunks.every((chunk) => chunk.text.length <= 16)).toBe(true);
-  });
-
-  it("divide parágrafos longos sem exceder o máximo", () => {
-    const text = "conteúdo ".repeat(20);
-    const chunks = splitTextIntoChunks(text, 17);
-
-    expect(chunks.length).toBeGreaterThan(1);
-    expect(chunks.every((chunk) => chunk.text.length <= 17)).toBe(true);
+    expect(chunks.map((chunk) => chunk.text).join("")).toBe(text);
+    expect(chunks[0]?.start).toBe(0);
+    expect(chunks.at(-1)?.end).toBe(text.length);
     expect(
-      chunks
-        .map((chunk) => chunk.text)
-        .join(" ")
-        .replace(/\s+/g, " ")
-        .trim(),
-    ).toBe(text.replace(/\s+/g, " ").trim());
+      chunks.every((chunk, index) => index === 0 || chunks[index - 1]?.end === chunk.start),
+    ).toBe(true);
   });
 
-  it("processa o limite de 1,2 milhão em no máximo 40 trechos", () => {
+  it("não divide pares substitutos de caracteres Unicode", () => {
+    const text = `${"a".repeat(25_999)}😀${"b".repeat(30_000)}`;
+    const chunks = splitTextIntoChunks(text, MAX_CHUNK_CHARS);
+
+    expect(chunks.map((chunk) => chunk.text).join("")).toBe(text);
+    expect(chunks[0]?.text.endsWith("\uD83D")).toBe(false);
+    expect(chunks[1]?.text.startsWith("\uDE00")).toBe(false);
+  });
+
+  it("limita a entrada máxima a 48 fatias mesmo com separadores frequentes", () => {
+    const text = ("a".repeat(19_500) + "\n")
+      .repeat(Math.ceil(MAX_SOURCE_CHARS / 19_501))
+      .slice(0, MAX_SOURCE_CHARS);
+    const chunks = splitTextIntoChunks(text, MAX_CHUNK_CHARS);
+
+    expect(chunks.length).toBeLessThanOrEqual(MAX_CHUNK_COUNT);
+    expect(chunks.every((chunk) => chunk.text.length <= MAX_CHUNK_CHARS)).toBe(true);
+    expect(chunks.map((chunk) => chunk.text).join("")).toBe(text);
+  });
+
+  it("reconstrói o limite de 1,2 milhão sem ultrapassar o número de chamadas reservado", () => {
     const text = "x".repeat(MAX_SOURCE_CHARS);
     const chunks = splitTextIntoChunks(text, MAX_CHUNK_CHARS);
 
-    expect(chunks).toHaveLength(40);
+    expect(chunks).toHaveLength(47);
+    expect(chunks.length).toBeLessThanOrEqual(MAX_CHUNK_COUNT);
     expect(chunks.every((chunk) => chunk.text.length <= MAX_CHUNK_CHARS)).toBe(true);
-    expect(chunks.reduce((total, chunk) => total + chunk.text.length, 0)).toBe(MAX_SOURCE_CHARS);
+    expect(chunks.map((chunk) => chunk.text).join("")).toBe(text);
+  });
+
+  it("preserva fragmentos de palavra nas fronteiras duras e só separa o miolo para IA", () => {
+    const text = "antes palavra-comprida depois";
+    const chunks = splitTextIntoChunks(text, 12);
+    const parts = chunks.map((chunk) => separateChunkBoundaryFragments(text, chunk));
+
+    expect(parts.map(({ prefix, core, suffix }) => prefix + core + suffix).join("")).toBe(text);
+    expect(parts.some(({ core }) => core.length === 0)).toBe(true);
   });
 
   it("rejeita um limite inválido", () => {

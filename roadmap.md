@@ -1,22 +1,27 @@
-# Roadmap — Reescritor de Estudos
+# Roadmap — Reescritor Inteligente
 
 ## Implementado no código
 
-- [x] Aplicação pública sem senha, com proteção CSRF e rate limit básico de 1 geração por minuto por IP.
-- [x] Anexar PDF, DOCX, TXT e Markdown, com limite de 5 arquivos, 10 MB por arquivo e 20 MB por envio.
-- [x] Aceitar até 1.200.000 caracteres combinados após extração.
-- [x] Processar fontes com trechos de até 30.000 caracteres, até 6 inferências simultâneas e no máximo 40 sínteses intermediárias antes da síntese final.
-- [x] Usar `@cf/meta/llama-4-scout-17b-16e-instruct`, com saída de guia completo ampliada e resumo rápido seletivo.
-- [x] Exigir confirmação para textos acima de 300.000 caracteres ou envio de PDF, avisando que pode haver várias inferências, espera e consumo adicional.
-- [x] Gerar guia completo ou resumo rápido em estilo didático, jurídico ou acadêmico.
-- [x] Manter perguntas sem respostas até a pessoa indicar sua confiança; depois apresentar gabarito, autoavaliação, reflexão e próxima ação.
-- [x] Guardar reflexões apenas localmente, com histórico limitado a 200 entradas; copiar, baixar Markdown e imprimir/salvar como PDF.
-- [x] Preservar fontes e instruções de integridade acadêmica; não gerar texto para ocultar autoria ou contornar verificações de plágio.
-- [x] Adicionar mapa visual das etapas Fonte → Prática → Revisão, mantendo paleta, fontes e layout editorial do produto.
+- [x] Aplicação pública sem senha, com proteção CSRF e rate limit básico por IP.
+- [x] Entrada por texto colado e anexos PDF, DOCX, TXT e Markdown, com até 5 arquivos, 10 MB por arquivo e 20 MB por envio.
+- [x] Limite de até 1.200.000 caracteres combinados após extração.
+- [x] Reescrita refinada em português do Brasil, com tons refinado, formal, acadêmico e jurídico/técnico e foco editorial opcional.
+- [x] Prompt versionado com preservação de significado, estrutura, citações, números, ressalvas e atribuições; o conteúdo-fonte e os contextos laterais são tratados como não confiáveis.
+- [x] Divisão em fatias contíguas de até 26.000 caracteres, com fronteiras de palavra preservadas, contexto adjacente, concorrência máxima de 6 e preservação exata dos espaços e fragmentos que não são enviados à IA nas fronteiras.
+- [x] Teto conservador de até 48 chamadas de geração, com duas posições reservadas no limite de 50 subrequests para controle de uso e conversão de PDF.
+- [x] Marcador aleatório de completude por trecho e leitura de metadados de tokens; uma saída sem confirmação ou próxima do teto não é mostrada como reescrita completa.
+- [x] Sessão de texto, opções e resultado de até 250.000 caracteres salvos localmente; chaves extras e bytes de PDF são rejeitados e não serializados.
+- [x] Limpeza local invalida operações em andamento; PDFs precisam ser reanexados após recarga.
+- [x] Saída pode ser copiada, baixada como `.txt` e impressa/salva como PDF.
+- [x] Interface editorial responsiva, com estados acessíveis, suporte a movimento reduzido e sem recursos metacognitivos.
+- [x] Testes automatizados de prompt, marcador de completude, armazenamento local, roteamento, concorrência e chunking exato.
 
-## Pendências de operação
+## Pendências operacionais
 
-- [ ] Confirmar em produção o binding Workers AI e o rate limiter após o deploy.
-- [ ] Testar uma geração sintética curta somente quando houver autorização para consumir Workers AI.
-- [ ] Validar conversão de PDFs em produção com arquivo de teste autorizado e verificar o consumo associado.
-- [ ] Conferir manualmente em celular a interface publicada e a exportação por impressão.
+- [x] Executar a nova suíte completa de testes, check, lint e build; 25 testes passaram, sem erros de tipo ou lint (seis avisos preexistentes em componentes-base).
+- [x] Revisar a prévia visual em 375, 768, 1280 e 1920 px; confirmar alvos de toque, restauração local, upload acessível e ausência de overflow com nomes longos.
+- [ ] Publicar as alterações no branch principal e aguardar o workflow do Cloudflare.
+- [ ] Validar no ambiente publicado uma reescrita sintética curta, uma amostra longa autorizada e o tratamento de uma saída sem marcador.
+- [ ] Validar conversão de PDF em produção com arquivo de teste autorizado.
+- [ ] Confirmar exportação por impressão após o deploy.
+- [ ] Monitorar erros de geração em materiais próximos ao limite de 1.200.000 caracteres e ajustar chunking se necessário.
