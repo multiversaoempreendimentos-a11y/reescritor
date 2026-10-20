@@ -27,7 +27,7 @@ bun run build
 
 ## Publicação
 
-O deploy é feito pelo workflow manual `Deploy Cloudflare Worker` em GitHub Actions. Cadastre `CLOUDFLARE_API_TOKEN` em Settings → Secrets and variables → Actions → New repository secret. O Account ID usado está configurado no workflow. O token deve ter apenas `Workers Scripts: Edit` na conta correta. Depois, abra Actions → Deploy Cloudflare Worker → Run workflow. Não envie tokens em chats ou commits.
+O deploy é feito pelo workflow manual `Deploy Cloudflare Worker` em GitHub Actions. Cadastre `CLOUDFLARE_API_TOKEN` em Settings → Secrets and variables → Actions → New repository secret. O Account ID usado está configurado no workflow; o token precisa estar autorizado para essa mesma conta. Como o primeiro deploy cria um Worker novo, use um token account-owned com papel `Admin` no produto Workers, limitado à conta correta. Depois da criação inicial, deploys de atualização podem usar `Editor` no Workers. Abra Actions → Deploy Cloudflare Worker → Run workflow. Não envie tokens em chats ou commits. Veja [permissões de Workers](https://developers.cloudflare.com/workers/authorization/) e [deploy com GitHub Actions](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/).
 
 ## Dados e privacidade
 
