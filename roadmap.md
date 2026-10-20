@@ -20,8 +20,9 @@
 
 - [x] Executar a nova suíte completa de testes, check, lint e build; 25 testes passaram, sem erros de tipo ou lint (seis avisos preexistentes em componentes-base).
 - [x] Revisar a prévia visual em 375, 768, 1280 e 1920 px; confirmar alvos de toque, restauração local, upload acessível e ausência de overflow com nomes longos.
-- [ ] Publicar as alterações no branch principal e aguardar o workflow do Cloudflare.
-- [ ] Validar no ambiente publicado uma reescrita sintética curta, uma amostra longa autorizada e o tratamento de uma saída sem marcador.
+- [x] Publicar as alterações no branch principal e aguardar o workflow do Cloudflare; o run `39355129756` concluiu com sucesso.
+- [x] Validar no ambiente publicado uma reescrita sintética curta com data, quantidades, percentual e ressalva causal; a resposta ficou sem o marcador técnico e sem erros no console.
+- [ ] Validar em produção uma amostra longa autorizada que gere múltiplas partes; o descarte de respostas sem marcador já está coberto por teste unitário.
 - [ ] Validar conversão de PDF em produção com arquivo de teste autorizado.
 - [ ] Confirmar exportação por impressão após o deploy.
 - [ ] Monitorar erros de geração em materiais próximos ao limite de 1.200.000 caracteres e ajustar chunking se necessário.
